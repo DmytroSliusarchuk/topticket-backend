@@ -2,13 +2,14 @@ from backend.app import app
 from backend.models.user import User, UserSchema
 from flask import jsonify, request
 from marshmallow import ValidationError
+from ..app import bcrypt
 
 
-@app.route("/register", methods=["POST"])
+@app.route("/user/register", methods=["POST"])
 def register():
     user_data = request.get_json()
 
-    # Add password hashing
+    user_data['password'] = bcrypt.generate_password_hash(password=user_data['password'])
 
     schema = UserSchema()
     try:
