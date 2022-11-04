@@ -1,0 +1,70 @@
+from backend.app import app
+from backend.models.event import Event, EventSchema
+from flask import jsonify, request
+from marshmallow import ValidationError
+
+
+@app.route("/event", methods=["POST"])
+def create_event():
+    event_data = request.get_json()
+
+    schema = EventSchema()
+
+    try:
+        event = schema.load(event_data)
+    except ValidationError as err:
+        return jsonify({"Validation errors": [err.messages[mesg][0] for mesg in err.messages]}), 405
+
+    event.save_to_db()
+    result = schema.dump(event)
+
+    return jsonify(result)
+
+
+@app.route('/event', methods=['GET'])
+def get_all_events():
+    events = Event.get_all()
+    if not events:
+        return jsonify({"Error": f"There are no events"}), 404
+    result = []
+    for event in events:
+        schema = EventSchema()
+        result.append(schema.dump(event))
+
+    return jsonify(result)
+
+
+@app.route('/event', methods=['PUT'])
+def update_event():
+    event_data = request.get_json()
+
+    schema = EventSchema()
+    try:
+        event = schema.load(event_data)
+    except ValidationError as err:
+        return jsonify({"Validation errors": [err.messages[mesg][0] for mesg in err.messages]}), 405
+
+    try:
+        event.update_by_id(event_data)
+        return jsonify({"Message": "Event was updated"})
+    except:
+        return jsonify({"Error": f"Event with id={event_data['idevent']} not found"}), 404
+
+
+@app.route('/event/<idevent>', methods=['GET'])
+def get_event_by_id(idevent: int):
+    event = Event.find_by_id(idevent)
+    if not event:
+        return jsonify({"Error": f"Event with id={idevent} not found"}), 404
+    schema = EventSchema()
+    result = schema.dump(event)
+    return jsonify(result)
+
+
+@app.route('/event/<idevent>', methods=['DELETE'])
+def delete_event_by_id(idevent: int):
+    try:
+        Event.delete_by_id(idevent)
+        return jsonify({"Message": "Event was deleted"})
+    except:
+        return jsonify({"Error": f"Event with id={idevent} not found"}), 404

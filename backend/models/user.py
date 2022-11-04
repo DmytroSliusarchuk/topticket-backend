@@ -32,6 +32,30 @@ class User(db.Model):
     def find_by_phone(cls, phone):
         return cls.query.filter_by(username=phone).first()
 
+    @classmethod
+    def delete_by_username(cls, username):
+        try:
+            cls.query.filter_by(username=username).delete()
+            db.session.commit()
+            return "user was deleted"
+        except:
+            return "Something went wrong"
+
+    @classmethod
+    def update_by_username(cls, username, user_data):
+        try:
+            user = cls.query.filter_by(username=username).first()
+            user.name = user_data['name']
+            user.surname = user_data['surname']
+            user.city = user_data['city']
+            user.email = user_data['email']
+            user.password = user_data['password']
+            user.phone = user_data['phone']
+            db.session.commit()
+            return "user was updated"
+        except:
+            return "Something went wrong"
+
 
 class UserSchema(Schema):
     iduser = fields.Integer(required=False)
@@ -40,7 +64,7 @@ class UserSchema(Schema):
     surname = fields.Str(validate=validate.Length(min=1, max=45), required=True)
     city = fields.Str(validate=validate.Length(min=1, max=45), required=True)
     email = fields.Email(validate=validate.Length(min=1, max=45), required=True)
-    password = fields.Str(validate=validate.Length(min=8, max=20), required=True)
+    password = fields.Str(required=True)
     phone = fields.Str(validate=validate.Regexp(r'^\+[0-9]{12}$'), required=True)
     role = fields.Str(validate=validate.OneOf(['User', 'Admin']), required=False)
 
