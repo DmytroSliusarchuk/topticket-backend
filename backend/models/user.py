@@ -1,5 +1,6 @@
 from backend.app import db
 from marshmallow import Schema, fields, validate, post_load
+from flask import jsonify
 
 
 class User(db.Model):
@@ -10,7 +11,7 @@ class User(db.Model):
     surname = db.Column(db.String(45), nullable=False)
     city = db.Column(db.String(45), nullable=False)
     email = db.Column(db.String(45), nullable=False, unique=True)
-    password = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(200), nullable=False)
     phone = db.Column(db.String(15), nullable=False, unique=True)
     role = db.Column(db.Enum("User", "Admin"), nullable=False, default="User")
 
@@ -33,28 +34,24 @@ class User(db.Model):
         return cls.query.filter_by(username=phone).first()
 
     @classmethod
-    def delete_by_username(cls, username):
-        try:
-            cls.query.filter_by(username=username).delete()
+    def delete_by_id(cls, userid):
+        if cls.query.get(userid):
+            cls.query.filter_by(iduser=userid).delete()
             db.session.commit()
-            return "user was deleted"
-        except:
-            return "Something went wrong"
+            return jsonify({'message': f'User with id={userid} was successfully deleted'})
+        else:
+            return jsonify({'error': f'User with id={userid} does not exist!'}), 404
 
     @classmethod
-    def update_by_username(cls, username, user_data):
-        try:
-            user = cls.query.filter_by(username=username).first()
-            user.name = user_data['name']
-            user.surname = user_data['surname']
-            user.city = user_data['city']
-            user.email = user_data['email']
-            user.password = user_data['password']
-            user.phone = user_data['phone']
-            db.session.commit()
-            return "user was updated"
-        except:
-            return "Something went wrong"
+    def update_by_username(cls, user_data):
+        user = cls.find_by_username(user_data["username"])
+        user.name = user_data['name']
+        user.surname = user_data['surname']
+        user.city = user_data['city']
+        user.email = user_data['email']
+        user.password = user_data['password']
+        user.phone = user_data['phone']
+        user.save_to_db()
 
 
 class UserSchema(Schema):
@@ -64,10 +61,12 @@ class UserSchema(Schema):
     surname = fields.Str(validate=validate.Length(min=1, max=45), required=True)
     city = fields.Str(validate=validate.Length(min=1, max=45), required=True)
     email = fields.Email(validate=validate.Length(min=1, max=45), required=True)
-    password = fields.Str(required=True)
+    password = fields.Str(validate=validate.Length(min=8, max=45), required=True)
     phone = fields.Str(validate=validate.Regexp(r'^\+[0-9]{12}$'), required=True)
     role = fields.Str(validate=validate.OneOf(['User', 'Admin']), required=False)
 
-    @post_load
-    def make_user(self, data, **kwargs):
+    @post_load(pass_original=True)
+    def make_user(self, data, conf, **kwargs):
+        if conf.get("upd", 0):
+            return True
         return User(**data)

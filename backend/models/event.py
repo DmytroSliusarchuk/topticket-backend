@@ -1,5 +1,6 @@
 from backend.app import db
 from marshmallow import Schema, fields, validate, post_load
+from flask import jsonify
 
 
 class Event(db.Model):
@@ -27,28 +28,25 @@ class Event(db.Model):
         return cls.query.filter_by(idevent=event_id).first()
 
     @classmethod
-    def delete_by_id(cls, event_id):
-        try:
-            cls.query.filter_by(idevent=event_id).delete()
+    def delete_by_id(cls, eventid):
+        if cls.query.get(eventid):
+            cls.query.filter_by(idevent=eventid).delete()
             db.session.commit()
-            return "user was deleted"
-        except:
-            return "Something went wrong"
+            return jsonify({'message': f'Event with id={eventid} was successfully deleted'})
+        else:
+            return jsonify({'error': f'Event with id={eventid} does not exist!'}), 404
 
     @classmethod
     def update_by_id(cls, event_data):
-        try:
-            event = cls.query.filter_by(idevent=event_data['idevent']).first()
-            event.name = event_data['name']
+        event = cls.query.get(event_data['idevent'])
+        event.name = event_data['name']
+        if 'description' in event_data:
             event.description = event_data['description']
-            event.city = event_data['city']
-            event.address = event_data['address']
-            event.date = event_data['date']
-            event.max_visitors = event_data['max_visitors']
-            db.session.commit()
-            return "user was updated"
-        except:
-            return "Something went wrong"
+        event.city = event_data['city']
+        event.address = event_data['address']
+        event.date = event_data['date']
+        event.max_visitors = event_data['max_visitors']
+        event.save_to_db()
 
 
 class EventSchema(Schema):
@@ -58,8 +56,10 @@ class EventSchema(Schema):
     city = fields.Str(validate=validate.Length(min=1, max=45), required=True)
     address = fields.Str(validate=validate.Length(min=1, max=100), required=True)
     date = fields.DateTime(required=True)
-    max_visitors = fields.Integer(required=True)
+    max_visitors = fields.Integer(validate=validate.Range(min=1), required=True)
 
-    @post_load
-    def make_event(self, data, **kwargs):
+    @post_load(pass_original=True)
+    def make_event(self, data, conf, **kwargs):
+        if conf.get("upd", 0):
+            return True
         return Event(**data)
