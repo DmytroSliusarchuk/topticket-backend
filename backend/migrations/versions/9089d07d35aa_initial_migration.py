@@ -1,8 +1,8 @@
-"""empty message
+"""Initial migration.
 
-Revision ID: 1a936c1b6714
+Revision ID: 9089d07d35aa
 Revises: 
-Create Date: 2022-10-27 22:07:38.102032
+Create Date: 2022-11-04 13:15:28.645001
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1a936c1b6714'
+revision = '9089d07d35aa'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -35,10 +35,13 @@ def upgrade():
     sa.Column('surname', sa.String(length=45), nullable=False),
     sa.Column('city', sa.String(length=45), nullable=False),
     sa.Column('email', sa.String(length=45), nullable=False),
-    sa.Column('password', sa.String(length=20), nullable=False),
-    sa.Column('phone', sa.String(length=15), nullable=True),
+    sa.Column('password', sa.String(length=200), nullable=False),
+    sa.Column('phone', sa.String(length=15), nullable=False),
     sa.Column('role', sa.Enum('User', 'Admin'), nullable=False),
-    sa.PrimaryKeyConstraint('iduser')
+    sa.PrimaryKeyConstraint('iduser'),
+    sa.UniqueConstraint('email'),
+    sa.UniqueConstraint('phone'),
+    sa.UniqueConstraint('username')
     )
     op.create_table('ticket',
     sa.Column('idticket', sa.Integer(), nullable=False),

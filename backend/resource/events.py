@@ -1,7 +1,7 @@
 from backend.app import app
 from backend.models.event import Event, EventSchema
 from flask import jsonify, request
-from marshmallow import ValidationError
+from marshmallow import ValidationError, EXCLUDE
 
 
 @app.route("/event", methods=["POST"])
@@ -13,7 +13,7 @@ def create_event():
     try:
         event = schema.load(event_data)
     except ValidationError as err:
-        return jsonify({"Validation errors": [err.messages[mesg][0] for mesg in err.messages]}), 405
+        return jsonify({"Validation errors": [err.messages[mesg][0] for mesg in err.messages]}), 400
 
     event.save_to_db()
     result = schema.dump(event)
@@ -37,17 +37,20 @@ def get_all_events():
 @app.route('/event', methods=['PUT'])
 def update_event():
     event_data = request.get_json()
+    event_data["upd"] = 1
 
-    schema = EventSchema()
-    try:
-        event = schema.load(event_data)
-    except ValidationError as err:
-        return jsonify({"Validation errors": [err.messages[mesg][0] for mesg in err.messages]}), 405
+    if Event.query.get(event_data["idevent"]):
 
-    try:
-        event.update_by_id(event_data)
+        schema = EventSchema()
+
+        try:
+            schema.load(event_data, unknown=EXCLUDE)
+        except ValidationError as err:
+            return jsonify({"Validation errors": [err.messages[mesg][0] for mesg in err.messages]}), 400
+
+        Event.update_by_id(event_data)
         return jsonify({"Message": "Event was updated"})
-    except:
+    else:
         return jsonify({"Error": f"Event with id={event_data['idevent']} not found"}), 404
 
 
@@ -63,8 +66,4 @@ def get_event_by_id(idevent: int):
 
 @app.route('/event/<idevent>', methods=['DELETE'])
 def delete_event_by_id(idevent: int):
-    try:
-        Event.delete_by_id(idevent)
-        return jsonify({"Message": "Event was deleted"})
-    except:
-        return jsonify({"Error": f"Event with id={idevent} not found"}), 404
+    return Event.delete_by_id(idevent)
