@@ -1,6 +1,7 @@
 from backend.app import db
 from marshmallow import Schema, fields, validate, post_load
 from flask import jsonify
+from flask_jwt_extended import create_access_token
 
 
 class User(db.Model):
@@ -20,6 +21,10 @@ class User(db.Model):
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
+
+    def get_jwt(self):
+        access_token = create_access_token(identity=self.iduser)
+        return access_token
 
     @classmethod
     def find_by_username(cls, username):

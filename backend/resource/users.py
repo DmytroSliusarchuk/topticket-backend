@@ -3,9 +3,11 @@ from backend.models.user import User, UserSchema
 from flask import jsonify, request
 from marshmallow import ValidationError, EXCLUDE
 from backend.app import bcrypt
+from flask_jwt_extended import jwt_required
 
 
 @app.route('/user/<userid>', methods=['GET'])
+@jwt_required()
 def get_user_by_id(userid: int):
     user = User.query.get(userid)
     if not user:
@@ -16,6 +18,7 @@ def get_user_by_id(userid: int):
 
 
 @app.route('/user/username/<username>', methods=['GET'])
+@jwt_required()
 def get_user_by_username(username: str):
     user = User.find_by_username(username)
     if not user:
@@ -26,6 +29,7 @@ def get_user_by_username(username: str):
 
 
 @app.route('/user', methods=['PUT'])
+@jwt_required()
 def update_user_by_username():
     user_data = request.get_json()
     user_data["upd"] = 1
@@ -45,5 +49,6 @@ def update_user_by_username():
 
 
 @app.route('/user/<userid>', methods=['DELETE'])
+@jwt_required()
 def delete_user_by_id(userid: int):
     return User.delete_by_id(userid)
