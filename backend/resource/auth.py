@@ -27,6 +27,21 @@ def register():
     user.password = bcrypt.generate_password_hash(password=user_data['password'])
 
     user.save_to_db()
-    result = schema.dump(user)
+    jwt_token = user.get_jwt()
+    return jsonify({"access_token": jwt_token})
 
-    return jsonify(result)
+
+@app.route('/user/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.find_by_username(data["username"])
+
+    if not user:
+        return jsonify({'message': f'User {data["username"]} doesn\'t exist'}), 404
+
+    if not bcrypt.check_password_hash(user.password, data["password"]):
+        return jsonify({'message': f'Wrong password'}), 403
+
+    access_token = user.get_jwt()
+
+    return jsonify({'message': f'Logged in as {data["username"]}', 'access_token': access_token})

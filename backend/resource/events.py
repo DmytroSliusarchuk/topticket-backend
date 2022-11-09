@@ -2,9 +2,14 @@ from backend.app import app
 from backend.models.event import Event, EventSchema
 from flask import jsonify, request
 from marshmallow import ValidationError, EXCLUDE
+from flask_jwt_extended import jwt_required
+from backend.utils import admin_required
+
 
 
 @app.route("/event", methods=["POST"])
+@jwt_required()
+@admin_required
 def create_event():
     event_data = request.get_json()
 
@@ -35,6 +40,8 @@ def get_all_events():
 
 
 @app.route('/event', methods=['PUT'])
+@jwt_required()
+@admin_required
 def update_event():
     event_data = request.get_json()
     event_data["upd"] = 1
@@ -65,5 +72,7 @@ def get_event_by_id(idevent: int):
 
 
 @app.route('/event/<idevent>', methods=['DELETE'])
+@jwt_required()
+@admin_required
 def delete_event_by_id(idevent: int):
     return Event.delete_by_id(idevent)
