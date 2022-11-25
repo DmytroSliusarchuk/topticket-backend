@@ -1,10 +1,10 @@
-from backend.app import app
-from backend.models.event import Event, EventSchema
 from flask import jsonify, request
 from marshmallow import ValidationError, EXCLUDE
 from flask_jwt_extended import jwt_required
-from backend.utils import admin_required
 
+from backend.app import app
+from backend.models.event import Event, EventSchema
+from backend.utils import admin_required
 
 
 @app.route("/event", methods=["POST"])
@@ -30,7 +30,7 @@ def create_event():
 def get_all_events():
     events = Event.get_all()
     if not events:
-        return jsonify({"Error": f"There are no events"}), 404
+        return jsonify({"Error": "There are no events"}), 404
     result = []
     for event in events:
         schema = EventSchema()
@@ -57,8 +57,7 @@ def update_event():
 
         Event.update_by_id(event_data)
         return jsonify({"Message": "Event was updated"})
-    else:
-        return jsonify({"Error": f"Event with id={event_data['idevent']} not found"}), 404
+    return jsonify({"Error": f"Event with id={event_data['idevent']} not found"}), 404
 
 
 @app.route('/event/<idevent>', methods=['GET'])

@@ -1,7 +1,8 @@
-from backend.app import db
-from marshmallow import Schema, fields, validate, post_load
 from flask import jsonify
+from marshmallow import Schema, fields, validate, post_load
 from flask_jwt_extended import create_access_token
+
+from backend.app import db
 
 
 class User(db.Model):
@@ -44,8 +45,7 @@ class User(db.Model):
             cls.query.filter_by(iduser=userid).delete()
             db.session.commit()
             return jsonify({'message': f'User with id={userid} was successfully deleted'})
-        else:
-            return jsonify({'error': f'User with id={userid} does not exist!'}), 404
+        return jsonify({'error': f'User with id={userid} does not exist!'}), 404
 
     @classmethod
     def update_by_username(cls, user_data):

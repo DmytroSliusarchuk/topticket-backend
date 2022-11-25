@@ -1,6 +1,7 @@
-from backend.app import db
-from marshmallow import Schema, fields, validate, post_load
 from flask import jsonify
+from marshmallow import Schema, fields, validate, post_load
+
+from backend.app import db
 
 
 class Ticket(db.Model):
@@ -40,8 +41,7 @@ class Ticket(db.Model):
             cls.query.filter_by(idticket=ticketid).delete()
             db.session.commit()
             return jsonify({'message': f'Ticket with id={ticketid} was successfully deleted'})
-        else:
-            return jsonify({'error': f'Ticket with id={ticketid} does not exist!'}), 404
+        return jsonify({'error': f'Ticket with id={ticketid} does not exist!'}), 404
 
 
 class TicketSchema(Schema):
@@ -52,7 +52,6 @@ class TicketSchema(Schema):
     is_booked = fields.Boolean(required=True)
     iduser = fields.Integer(required=False)
     idevent = fields.Integer(required=True)
-
 
     @post_load(pass_original=True)
     def make_ticket(self, data, conf, **kwargs):

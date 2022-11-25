@@ -1,8 +1,9 @@
-from backend.app import app
-from backend.models.user import User, UserSchema
 from flask import jsonify, request
 from marshmallow import ValidationError
-from ..app import bcrypt
+
+from backend.app import app
+from backend.models.user import User, UserSchema
+from backend.app import bcrypt
 
 
 @app.route("/user/register", methods=["POST"])
@@ -40,7 +41,7 @@ def login():
         return jsonify({'message': f'User {data["username"]} doesn\'t exist'}), 404
 
     if not bcrypt.check_password_hash(user.password, data["password"]):
-        return jsonify({'message': f'Wrong password'}), 403
+        return jsonify({'message': 'Wrong password'}), 403
 
     access_token = user.get_jwt()
 
