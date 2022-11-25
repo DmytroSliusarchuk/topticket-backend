@@ -1,12 +1,12 @@
+from flask import jsonify, request
+from marshmallow import ValidationError, EXCLUDE
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from backend.app import app
 from backend.models.ticket import Ticket, TicketSchema
 from backend.models.event import Event
 from backend.models.user import User
-from flask import jsonify, request
-from marshmallow import ValidationError, EXCLUDE
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from backend.utils import admin_required
-
 
 
 @app.route("/ticket", methods=["POST"])
@@ -73,8 +73,7 @@ def update_ticket():
         Ticket.update_by_id(ticket_data)
 
         return jsonify({"Message": "Ticket was updated"})
-    else:
-        return jsonify({"Error": f"Ticket with id={ticket_data['idticket']} not found"}), 404
+    return jsonify({"Error": f"Ticket with id={ticket_data['idticket']} not found"}), 404
 
 
 @app.route('/ticket/<idticket>', methods=['GET'])
@@ -98,7 +97,7 @@ def delete_ticket_by_id(idticket: int):
 def get_all_tickets_by_eventid(idevent: int):
     tickets = Event.query.get(idevent).tickets
     if not tickets:
-        return jsonify({"Error": f"There are no tickets with that event ID"}), 404
+        return jsonify({"Error": f"There are no tickets with event id={idevent}"}), 404
     result = []
     for ticket in tickets:
         schema = TicketSchema()
@@ -112,7 +111,7 @@ def get_all_tickets_by_eventid(idevent: int):
 def get_all_tickets_by_userid(iduser: int):
     tickets = User.query.get(iduser).tickets
     if not tickets:
-        return jsonify({"Error": f"There are no tickets with that user ID"}), 404
+        return jsonify({"Error": f"There are no tickets with user id={iduser}"}), 404
     result = []
     for ticket in tickets:
         schema = TicketSchema()
@@ -151,13 +150,12 @@ def book_ticket():
     if ticket:
         if ticket.is_booked or ticket.is_bought:
             return jsonify({"Error": "This seat is taken"}), 403
-        else:
-            user = User.query.get(userid)
-            ticket.iduser = userid
-            ticket.is_booked = 1
-            user.tickets.append(ticket)
-            ticket.save_to_db()
-            return jsonify({"Message": "Ticket was booked"})
+        user = User.query.get(userid)
+        ticket.iduser = userid
+        ticket.is_booked = 1
+        user.tickets.append(ticket)
+        ticket.save_to_db()
+        return jsonify({"Message": "Ticket was booked"})
     return jsonify({
         "Error": f"Ticket with eventid={ticket_data['idevent']} or seat with number={ticket_data['seat_number']} not found"}), 404
 
@@ -172,13 +170,11 @@ def cancel_book_ticket():
     if ticket:
         if not ticket.is_booked or ticket.iduser != userid:
             return jsonify({"Error": "You did not book this seat"}), 403
-        else:
-            user = User.query.get(userid)
-            user.tickets.remove(ticket)
-
-            ticket.iduser = None
-            ticket.is_booked = 0
-            ticket.save_to_db()
-            return jsonify({"Message": "Booking was canceled"})
+        user = User.query.get(userid)
+        user.tickets.remove(ticket)
+        ticket.iduser = None
+        ticket.is_booked = 0
+        ticket.save_to_db()
+        return jsonify({"Message": "Booking was canceled"})
     return jsonify({
         "Error": f"Ticket with eventid={ticket_data['idevent']} or seat with number={ticket_data['seat_number']} not found"}), 404

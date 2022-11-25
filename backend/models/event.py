@@ -1,6 +1,7 @@
-from backend.app import db
-from marshmallow import Schema, fields, validate, post_load
 from flask import jsonify
+from marshmallow import Schema, fields, validate, post_load
+
+from backend.app import db
 
 
 class Event(db.Model):
@@ -33,8 +34,7 @@ class Event(db.Model):
             cls.query.filter_by(idevent=eventid).delete()
             db.session.commit()
             return jsonify({'message': f'Event with id={eventid} was successfully deleted'})
-        else:
-            return jsonify({'error': f'Event with id={eventid} does not exist!'}), 404
+        return jsonify({'error': f'Event with id={eventid} does not exist!'}), 404
 
     @classmethod
     def update_by_id(cls, event_data):

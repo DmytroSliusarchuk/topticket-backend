@@ -1,4 +1,3 @@
-from backend.resource.resource_test import index, hello_world
 from backend.resource.auth import register, login
 from backend.resource.users import get_user_by_username, get_user_by_id, delete_user_by_id, update_user_by_username
 from backend.resource.events import create_event, get_event_by_id, delete_event_by_id, update_event, get_all_events

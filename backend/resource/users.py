@@ -1,9 +1,10 @@
-from backend.app import app
-from backend.models.user import User, UserSchema
 from flask import jsonify, request
 from marshmallow import ValidationError, EXCLUDE
-from backend.app import bcrypt
 from flask_jwt_extended import jwt_required
+
+from backend.app import app
+from backend.app import bcrypt
+from backend.models.user import User, UserSchema
 
 
 @app.route('/user/<userid>', methods=['GET'])
@@ -44,8 +45,7 @@ def update_user_by_username():
 
         User.update_by_username(user_data)
         return jsonify({"Message": "User was updated"})
-    else:
-        return jsonify({"Error": f"User with username={user_data['username']} not found"}), 404
+    return jsonify({"Error": f"User with username={user_data['username']} not found"}), 404
 
 
 @app.route('/user/<userid>', methods=['DELETE'])
