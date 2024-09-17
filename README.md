@@ -1,8 +1,22 @@
-<h2>Для розгортання проекту потрібно</h2>
+# TopTicket API
 
-1. Встановити інтерпретатор Python 3.6.8
-2. Створити віртуальне середовище
-3. Створити проект у віртуальному середовищі
-4. Клонувати в проект гілку main
-5. Встановити модулі Flask та waitress(pip install -r requirements.txt)
-6. Запустити на виконання
+TopTicket is a RESTful API for ticketing system.
+
+## Features
+
+- Register a new user
+- Login a user
+- View, create, update and delete events
+- View details of an event
+- View, create, update and delete tickets
+- Buy a ticket for an event
+
+## Technologies Used
+
+- Python: The programming language used to build the application
+- Flask: The web framework used to build the application
+- MySQL: The database used to store the application data
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
